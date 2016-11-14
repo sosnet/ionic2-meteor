@@ -3,10 +3,13 @@ import { IonicApp, IonicModule } from 'ionic-angular';
 import { MyApp } from './app.component';
 import { TabsPage } from '../pages/tabs/tabs';
 
+import { ChatsPage } from "../pages/chats/chats";
+
 @NgModule({
   declarations: [
     MyApp,
-    TabsPage
+    TabsPage,
+    ChatsPage
   ],
   imports: [
     IonicModule.forRoot(MyApp)
@@ -14,7 +17,8 @@ import { TabsPage } from '../pages/tabs/tabs';
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
-    TabsPage
+    TabsPage,
+    ChatsPage
   ],
   providers: []
 })
