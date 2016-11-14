@@ -1,9 +1,17 @@
 import { Meteor } from 'meteor/meteor';
 import { Chats, Messages } from "../collections/whatsapp-collections";
+import { Chat } from "api/models/whatsapp-models";
 import * as moment from "moment";
 
 Meteor.startup(() => {
+  console.log("startup");
+
+  Chats.remove({});
+  Messages.remove({});
+
   if (Chats.find({}).cursor.count() === 0) {
+    console.log("filling data");
+
     let chatId;
 
     chatId = Chats.collection.insert({
@@ -60,5 +68,12 @@ Meteor.startup(() => {
       content: 'This is wicked good ice cream.',
       createdAt: moment().subtract(2, 'weeks').toDate()
     });
+
+    console.log("data finished");
   }
+
+  Chats.find({})
+    .forEach( chat => console.log((<Chat>chat).title));
+
+  console.log("startup finished");
 });
