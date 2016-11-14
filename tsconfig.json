@@ -6,12 +6,16 @@
     "experimentalDecorators": true,
     "lib": [
       "dom",
-      "es2015"
+      "es6"
     ],
-    "module": "es2015",
+    "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
-    "target": "es5"
+    "target": "es5",
+    "noImplicitAny": false,
+    "declaration": false,
+    "skipLibCheck": true,
+    "stripInternal": true
   },
   "include": [
     "src/**/*.ts"
