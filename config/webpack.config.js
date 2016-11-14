@@ -11,6 +11,7 @@ function getEntryPoint() {
   return '{{SRC}}/app/main.dev.ts';
 }
 
+/*
 function getPlugins() {
   if (process.env.IONIC_ENV === 'prod') {
     return [
@@ -27,6 +28,25 @@ function getPlugins() {
   return [
     ionicWebpackFactory.getIonicEnvironmentPlugin()
   ];
+}
+*/
+
+function getPlugins() {
+  var plugins = [
+    // Try to dedupe duplicated modules, if any:
+    // Add this back in when Angular fixes the issue: https://github.com/angular/angular-cli/issues/1587
+    //new DedupePlugin()
+    new webpack.ProvidePlugin({
+      __extends: 'typescript-extends'
+    })
+  ];
+
+  if (process.env.IONIC_ENV === 'prod') {
+    // This helps ensure the builds are consistent if source hasn't changed:
+    plugins.push(new webpack.optimize.OccurrenceOrderPlugin())
+  }
+
+  return plugins;
 }
 
 function getSourcemapLoader() {
@@ -61,7 +81,10 @@ module.exports = {
   devtool: getDevtool(),
 
   resolve: {
-    extensions: ['.js', '.ts', '.json']
+    extensions: ['.js', '.json', '.ts'],
+    alias: {
+      'api': path.resolve(__dirname, '../api')
+    }
   },
 
   module: {
@@ -69,6 +92,11 @@ module.exports = {
       {
         test: /\.json$/,
         loader: 'json'
+      },
+      {
+        test: /\.ts$/,
+        exclude: /(node_modules)/,
+        loaders: ['awesome-typescript-loader']
       }
     ].concat(getSourcemapLoader())
   },
@@ -80,6 +108,7 @@ module.exports = {
   node: {
     fs: 'empty',
     net: 'empty',
-    tls: 'empty'
+    tls: 'empty',
+  __dirname: true
   }
 };
