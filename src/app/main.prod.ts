@@ -1,3 +1,4 @@
+import 'meteor-client-side';
 import { platformBrowser } from '@angular/platform-browser';
 import { enableProdMode } from '@angular/core';
 
