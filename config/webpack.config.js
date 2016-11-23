@@ -1,35 +1,17 @@
 var path = require('path');
 var webpack = require('webpack');
 
-var ionicWebpackFactoryPath = path.join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'webpack', 'ionic-webpack-factory.js');
-var ionicWebpackFactory = require(ionicWebpackFactoryPath);
+// for prod builds, we have already done AoT and AoT writes to disk
+// so read the JS file from disk
+// for dev buids, we actually want to pass in .ts files since we
+// don't have .js files on disk, they're exclusively in memory
 
 function getEntryPoint() {
   if (process.env.IONIC_ENV === 'prod') {
     return '{{TMP}}/app/main.prod.js';
   }
-  return '{{SRC}}/app/main.dev.ts';
+  return '{{TMP}}/app/main.dev.js';
 }
-
-/*
-function getPlugins() {
-  if (process.env.IONIC_ENV === 'prod') {
-    return [
-      // This helps ensure the builds are consistent if source hasn't changed:
-      new webpack.optimize.OccurrenceOrderPlugin(),
-
-      // Try to dedupe duplicated modules, if any:
-      // Add this back in when Angular fixes the issue: https://github.com/angular/angular-cli/issues/1587
-      //new DedupePlugin()
-    ];
-  }
-
-  // for dev builds, use our custom environment
-  return [
-    ionicWebpackFactory.getIonicEnvironmentPlugin()
-  ];
-}
-*/
 
 function getPlugins() {
   var plugins = [
@@ -49,36 +31,12 @@ function getPlugins() {
   return plugins;
 }
 
-function getSourcemapLoader() {
-  if (process.env.IONIC_ENV === 'prod') {
-    // TODO figure out the disk loader, it's not working yet
-    return [];
-  }
-
-  return [
-    {
-      test: /\.ts$/,
-      loader: path.join(process.env.IONIC_APP_SCRIPTS_DIR, 'dist', 'webpack', 'typescript-sourcemap-loader-memory.js')
-    }
-  ];
-}
-
-function getDevtool() {
-  if (process.env.IONIC_ENV === 'prod') {
-    // for now, just force source-map for prod builds
-    return 'source-map';
-  }
-
-  return process.env.IONIC_SOURCE_MAP;
-}
-
 module.exports = {
   entry: getEntryPoint(),
   output: {
     path: '{{BUILD}}',
     filename: 'main.js'
   },
-  devtool: getDevtool(),
 
   resolve: {
     extensions: ['.js', '.json', '.ts'],
@@ -98,7 +56,7 @@ module.exports = {
         exclude: /(node_modules)/,
         loaders: ['awesome-typescript-loader']
       }
-    ].concat(getSourcemapLoader())
+    ]
   },
 
   plugins: getPlugins(),
@@ -109,6 +67,6 @@ module.exports = {
     fs: 'empty',
     net: 'empty',
     tls: 'empty',
-  __dirname: true
+    __dirname: true
   }
 };

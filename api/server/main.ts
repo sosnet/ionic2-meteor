@@ -1,13 +1,18 @@
 import { Meteor } from 'meteor/meteor';
 import { Chats, Messages } from "../collections/whatsapp-collections";
 import { Chat } from "api/models/whatsapp-models";
+import { initMethods } from "./methods";
 import * as moment from "moment";
 
 Meteor.startup(() => {
+
   console.log("startup");
 
-  Chats.remove({});
-  Messages.remove({});
+  console.log("init Methods")
+  initMethods();
+
+  //Chats.remove({});
+  //Messages.remove({});
 
   if (Chats.find({}).cursor.count() === 0) {
     console.log("filling data");
@@ -72,8 +77,10 @@ Meteor.startup(() => {
     console.log("data finished");
   }
 
+  /*
   Chats.find({})
     .forEach( chat => console.log((<Chat>chat).title));
+  */
 
   console.log("startup finished");
 });

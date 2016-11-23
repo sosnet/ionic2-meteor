@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Observable } from "rxjs";
 import { Chat } from "api/models/whatsapp-models";
 import { Chats, Messages } from "api/collections/whatsapp-collections";
+import { NavController } from "ionic-angular";
+import { MessagesPage } from "../messages/messages";
+
 
 @Component({
   templateUrl: 'chats.html'
@@ -9,7 +12,7 @@ import { Chats, Messages } from "api/collections/whatsapp-collections";
 export class ChatsPage implements OnInit {
   chats;
 
-  constructor() {
+  constructor(private navCtrl: NavController) {
 
   }
 
@@ -17,8 +20,7 @@ export class ChatsPage implements OnInit {
     console.log("ngOnInit");
 
     this.chats = Chats
-      .find({});
-      /*
+      .find({})
       .mergeMap((chats: Chat[]) =>
         Observable.combineLatest(
           ...chats.map((chat: Chat) =>
@@ -32,7 +34,11 @@ export class ChatsPage implements OnInit {
           )
         )
       ).zone();
-      */
+
+  }
+
+  showMessages(chat): void {
+    this.navCtrl.push(MessagesPage, { chat });
   }
 
 
