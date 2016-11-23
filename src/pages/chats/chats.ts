@@ -1,40 +1,86 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from "rxjs";
 import { Chat } from "api/models/whatsapp-models";
-import { Chats, Messages } from "api/collections/whatsapp-collections";
-import { NavController } from "ionic-angular";
+import { Chats, Messages, Users } from "api/collections/whatsapp-collections";
+import { NavController, PopoverController, ModalController, AlertController } from "ionic-angular";
 import { MessagesPage } from "../messages/messages";
+import { ChatsOptionsComponent } from "../chat-options/chat-options";
+import { NewChatComponent } from "../new-chat/new-chat";
+import { MeteorObservable } from 'meteor-rxjs';
 
+declare let Meteor;
 
 @Component({
   templateUrl: 'chats.html'
 })
 export class ChatsPage implements OnInit {
   chats;
+  senderId: string;
 
-  constructor(private navCtrl: NavController) {
-
-  }
+  constructor(
+    private navCtrl: NavController,
+    public popoverCtrl: PopoverController,
+    public modalCtrl: ModalController,
+    public alertCtrl: AlertController
+  ) { }
 
   ngOnInit() {
     console.log("ngOnInit");
 
-    this.chats = Chats
-      .find({})
-      .mergeMap((chats: Chat[]) =>
-        Observable.combineLatest(
-          ...chats.map((chat: Chat) =>
-            Messages
-              .find({ chatId: chat._id })
-              .startWith(null)
-              .map(messages => {
-                if (messages) chat.lastMessage = messages[0];
-                return chat;
-              })
-          )
-        )
-      ).zone();
+    this.senderId = Meteor.userId();
 
+    MeteorObservable.subscribe('chats').subscribe(() => {
+      MeteorObservable.autorun().subscribe(() => {
+        if (this.chats) {
+          this.chats.unsubscribe();
+          this.chats = undefined;
+        }
+
+        this.chats = Chats
+          .find({})
+          .mergeMap((chats: Chat[]) =>
+            Observable.combineLatest(
+              ...chats.map((chat: Chat) =>
+                Messages
+                  .find({ chatId: chat._id })
+                  .startWith(null)
+                  .map(messages => {
+                    if (messages) chat.lastMessage = messages[0];
+                    return chat;
+                  })
+              )
+            )
+          ).map(chats => {
+            chats.forEach(chat => {
+              chat.title = '';
+              chat.picture = '';
+
+              const receiver = Users.findOne(chat.memberIds.find(memberId => memberId !== this.senderId));
+              if (!receiver) return;
+
+              chat.title = receiver.profile.name;
+              chat.picture = receiver.profile.picture;
+            });
+
+            return chats;
+          }).zone();
+      });
+    });
+
+  }
+
+  addChat(): void {
+    const modal = this.modalCtrl.create(NewChatComponent);
+    modal.present();
+  }
+
+  showOptions(): void {
+    console.log("show Options");
+    const popover = this.popoverCtrl.create(ChatsOptionsComponent, {}, {
+      cssClass: 'options-popover'
+    });
+
+    popover.present();
   }
 
   showMessages(chat): void {
@@ -43,7 +89,23 @@ export class ChatsPage implements OnInit {
 
 
   removeChat(chat: Chat): void {
-    // TODO: Implement it later
+    MeteorObservable.call('removeChat', chat._id).subscribe({
+      error: (e: Error) => {
+        if (e) this.handleError(e);
+      }
+    });
+  }
+
+  private handleError(e: Error): void {
+    console.error(e);
+
+    const alert = this.alertCtrl.create({
+      title: 'Oops!',
+      message: e.message,
+      buttons: ['OK']
+    });
+
+    alert.present();
   }
 
 }

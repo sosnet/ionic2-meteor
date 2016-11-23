@@ -7,13 +7,25 @@ import { ChatsPage } from "../pages/chats/chats";
 import { MomentModule } from "angular2-moment";
 
 import { MessagesPage } from "../pages/messages/messages";
+import { LoginComponent } from "../pages/auth/login";
+import { VerificationComponent } from "../pages/verification/verification";
+import { ProfileComponent } from "../pages/profile/profile";
+import { ChatsOptionsComponent } from "../pages/chat-options/chat-options";
+import { MessagesOptionsComponent } from "../pages/messages-options/messages-options";
+import { NewChatComponent } from "../pages/new-chat/new-chat";
 
 @NgModule({
   declarations: [
     MyApp,
     TabsPage,
     ChatsPage,
-    MessagesPage
+    MessagesPage,
+    LoginComponent,
+    VerificationComponent,
+    ProfileComponent,
+    ChatsOptionsComponent,
+    NewChatComponent,
+    MessagesOptionsComponent
   ],
   imports: [
     IonicModule.forRoot(MyApp),
@@ -24,7 +36,13 @@ import { MessagesPage } from "../pages/messages/messages";
     MyApp,
     TabsPage,
     ChatsPage,
-    MessagesPage
+    MessagesPage,
+    LoginComponent,
+    VerificationComponent,
+    ProfileComponent,
+    ChatsOptionsComponent,
+    NewChatComponent,
+    MessagesOptionsComponent
   ],
   providers: []
 })

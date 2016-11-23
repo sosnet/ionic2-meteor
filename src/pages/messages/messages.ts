@@ -1,9 +1,12 @@
 import { Component, OnInit, OnDestroy, ElementRef } from "@angular/core";
-import { NavParams } from "ionic-angular";
+import { NavParams, PopoverController } from "ionic-angular";
 import { Chat, Message } from "api/models/whatsapp-models";
 import { Messages } from "api/collections/whatsapp-collections";
 import { Observable, Subscription} from "rxjs";
 import { MeteorObservable } from "meteor-rxjs";
+import { MessagesOptionsComponent } from "../messages-options/messages-options";
+
+declare let Meteor;
 
 @Component({
   selector: "messages-page",
@@ -16,34 +19,48 @@ export class MessagesPage implements OnInit, OnDestroy {
   messages: Observable<Message[]>;
   message: string = "";
   autoScroller: Subscription;
+  senderId: string;
 
-  constructor(navParams: NavParams, element: ElementRef) {
+  constructor(navParams: NavParams, element: ElementRef, public popoverCtrl: PopoverController) {
     this.selectedChat = <Chat>navParams.get('chat');
     this.title = this.selectedChat.title;
     this.picture = this.selectedChat.picture;
+    this.senderId = Meteor.userId();
 
     console.log("Selected chat is: ", this.selectedChat);
   }
 
   ngOnInit() {
-    let isEven = false;
 
-    this.messages = Messages.find(
-      { chatId: this.selectedChat._id },
-      { sort: { createdAt: 1 } }
-    ).map((messages: Message[]) => {
-      messages.forEach((message: Message) => {
-        message.ownership = isEven ? 'mine' : 'other';
-        isEven = !isEven;
+    MeteorObservable.subscribe('messages', this.selectedChat._id).subscribe(() => {
+      MeteorObservable.autorun().subscribe(() => {
+        this.messages = Messages.find(
+          { chatId: this.selectedChat._id },
+          { sort: { createdAt: 1 } }
+        ).map((messages: Message[]) => {
+          messages.forEach((message: Message) => {
+            message.ownership = this.senderId == message.senderId ? 'mine' : 'other';
+          });
+
+          return messages;
+        });
       });
-
-      return messages;
     });
 
     this.autoScroller = MeteorObservable.autorun().subscribe(() => {
       this.scroller.scrollTop = this.scroller.scrollHeight;
       this.messageEditor.focus();
     });
+  }
+
+  showOptions(): void {
+    const popover = this.popoverCtrl.create(MessagesOptionsComponent, {
+      chat: this.selectedChat
+    }, {
+        cssClass: 'options-popover'
+      });
+
+    popover.present();
   }
 
   private get messagesPageContent(): Element {
@@ -73,7 +90,7 @@ export class MessagesPage implements OnInit, OnDestroy {
     }
   }
 
-  onInputKeypress({keyCode}: KeyboardEvent): void {
+  onInputKeypress({ keyCode }: KeyboardEvent): void {
     if (keyCode == 13) {
       this.sendMessage();
     }
